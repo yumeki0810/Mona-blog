@@ -1,7 +1,8 @@
 import os
+import smtplib
 from functools import wraps
 
-from flask import Flask, render_template, redirect, url_for, flash, abort
+from flask import Flask, render_template, redirect, url_for, flash, abort, request
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
 from datetime import date
@@ -17,6 +18,10 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 ckeditor = CKEditor(app)
 Bootstrap(app)
+
+MY_EMAIL = os.environ.get("MY_EMAIL")
+MY_PASSWORD = os.environ.get("MY_PASSWORD")
+
 
 # CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
@@ -183,10 +188,26 @@ def about():
     return render_template("about.html")
 
 
-@app.route("/contact")
+@app.route("/contact", methods=['GET', 'POST'])
 def contact():
-    return render_template("contact.html")
+    if request.method == 'POST':
+        data = request.form
+        send_email(data["name"], data["email"], data["phone"], data["message"])
+        return render_template('contact.html', msg_sent=True)
+    else:
+        return render_template('contact.html', msg_sent=False)
 
+
+def send_email(name, email, phone, message):
+    with smtplib.SMTP("smtp.gmail.com", port=587) as connection:
+        connection.starttls()
+        connection.login(user=MY_EMAIL, password=MY_PASSWORD)
+        connection.sendmail(
+            from_addr=MY_EMAIL,
+            to_addrs=MY_EMAIL,
+            msg=f"Subject:Blog's message!\n\nName: {name}\nEmail: {email}\n"
+                f"Phone: {phone}\nMessage: {message}".encode("utf-8")
+        )
 
 @app.route("/new-post", methods=["GET", "POST"])
 @admin_only
