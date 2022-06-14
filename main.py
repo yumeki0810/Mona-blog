@@ -64,7 +64,7 @@ class User(UserMixin, db.Model):
     # The "author" refers to the author property in the BlogPost class.
     posts = relationship("BlogPost", back_populates="author")
     comments = relationship("Comment", back_populates="comment_author")
-# db.create_all()
+db.create_all()
 
 
 # CONFIGURE TABLES
@@ -82,7 +82,7 @@ class BlogPost(db.Model):
     body = db.Column(db.Text, nullable=False)
     img_url = db.Column(db.String(250), nullable=False)
     comments = relationship("Comment", back_populates="parent_post")
-# db.create_all()
+db.create_all()
 
 
 class Comment(db.Model):
@@ -94,7 +94,7 @@ class Comment(db.Model):
     comment_author = relationship("User", back_populates="comments")
     post_id = db.Column(db.Integer, db.ForeignKey("blog_posts.id"))
     parent_post = relationship("BlogPost", back_populates="comments")
-# db.create_all()
+db.create_all()
 
 
 @app.route('/')
